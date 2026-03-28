@@ -4,9 +4,10 @@ class FocusrelayApi < Formula
   desc "HTTP API server for OmniFocus via FocusRelayMCP"
   homepage "https://github.com/jenrzzz/focusrelay-api"
   url "https://github.com/jenrzzz/focusrelay-api/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "UPDATE_WITH_ACTUAL_SHA256"
+  sha256 "4d306c36e51ff4494cb893f662882efd08bd08f0b953b0f450cf9fd24de41af3"
   license "MIT"
 
+  depends_on "deverman/focus-relay/focusrelay"
   depends_on "python@3.13"
 
   resource "annotated-doc" do

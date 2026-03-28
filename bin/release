@@ -69,10 +69,10 @@ TARBALL_URL="https://github.com/$REPO/archive/refs/tags/$TAG.tar.gz"
 SHA256=$(curl -sL "$TARBALL_URL" | shasum -a 256 | cut -d' ' -f1)
 echo "    $SHA256"
 
-# --- Update formula ---
+# --- Update formula (only top-level url/sha256, not resource blocks) ---
 echo "==> Updating formula"
-sed -i '' "s|url \".*\"|url \"$TARBALL_URL\"|" "$FORMULA"
-sed -i '' "s|sha256 \".*\"|sha256 \"$SHA256\"|" "$FORMULA"
+sed -i '' "6s|url \".*\"|url \"$TARBALL_URL\"|" "$FORMULA"
+sed -i '' "7s|sha256 \".*\"|sha256 \"$SHA256\"|" "$FORMULA"
 
 # Also update local copy
 cp "$FORMULA" "$LOCAL_FORMULA"
