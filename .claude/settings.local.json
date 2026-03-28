@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod:*)",
+      "Bash(uv sync:*)",
+      "Bash(bin/test -v 2>&1)"
+    ]
+  }
+}

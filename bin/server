@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec uv run uvicorn focusrelay_api.main:app --host "${FOCUSRELAY_HOST:-0.0.0.0}" --port "${FOCUSRELAY_PORT:-8394}" "$@"
