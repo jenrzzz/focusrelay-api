@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+GH="/opt/homebrew/bin/gh"
+REPO="jenrzzz/focusrelay-api"
+TAP_REPO="jenrzzz/homebrew-formulae"
+TAP_DIR="/opt/homebrew/Library/Taps/jenrzzz/homebrew-formulae"
+FORMULA="$TAP_DIR/Formula/focusrelay-api.rb"
+LOCAL_FORMULA="$(cd "$(dirname "$0")/.." && pwd)/homebrew/focusrelay-api.rb"
+
+# --- Determine version ---
+VERSION="${1:-}"
+if [[ -z "$VERSION" ]]; then
+  # Read from pyproject.toml
+  VERSION=$(grep '^version' pyproject.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+fi
+TAG="v$VERSION"
+
+echo "==> Releasing $TAG"
+
+# --- Preflight checks ---
+if ! $GH auth status &>/dev/null; then
+  echo "Error: gh is not authenticated. Run: gh auth login" >&2
+  exit 1
+fi
+
+if [[ -n "$(git status --porcelain)" ]]; then
+  echo "Error: working tree is dirty. Commit or stash changes first." >&2
+  exit 1
+fi
+
+if git rev-parse "$TAG" &>/dev/null; then
+  echo "Error: tag $TAG already exists." >&2
+  exit 1
+fi
+
+# --- Ensure GitHub repos exist ---
+if ! $GH repo view "$REPO" &>/dev/null; then
+  echo "==> Creating GitHub repo $REPO"
+  $GH repo create "$REPO" --private --source=. --push
+fi
+
+if ! $GH repo view "$TAP_REPO" &>/dev/null; then
+  echo "==> Creating GitHub repo $TAP_REPO"
+  $GH repo create "$TAP_REPO" --public --description "Homebrew formulae"
+fi
+
+# --- Ensure tap has remote ---
+TAP_REMOTE=$(git -C "$TAP_DIR" remote get-url origin 2>/dev/null || true)
+if [[ -z "$TAP_REMOTE" ]]; then
+  echo "==> Setting tap remote"
+  git -C "$TAP_DIR" remote add origin "git@github.com:$TAP_REPO.git"
+fi
+
+# --- Push main branch and create release ---
+echo "==> Pushing to origin"
+git push origin HEAD
+
+echo "==> Tagging $TAG"
+git tag "$TAG"
+git push origin "$TAG"
+
+echo "==> Creating GitHub release"
+$GH release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes
+
+# --- Download tarball and compute sha256 ---
+echo "==> Computing sha256"
+TARBALL_URL="https://github.com/$REPO/archive/refs/tags/$TAG.tar.gz"
+SHA256=$(curl -sL "$TARBALL_URL" | shasum -a 256 | cut -d' ' -f1)
+echo "    $SHA256"
+
+# --- Update formula ---
+echo "==> Updating formula"
+sed -i '' "s|url \".*\"|url \"$TARBALL_URL\"|" "$FORMULA"
+sed -i '' "s|sha256 \".*\"|sha256 \"$SHA256\"|" "$FORMULA"
+
+# Also update local copy
+cp "$FORMULA" "$LOCAL_FORMULA"
+
+# --- Push tap ---
+echo "==> Pushing tap"
+git -C "$TAP_DIR" add Formula/focusrelay-api.rb
+git -C "$TAP_DIR" commit -m "focusrelay-api $TAG"
+git -C "$TAP_DIR" push origin main
+
+echo ""
+echo "==> Done! Install with:"
+echo "    brew tap jenrzzz/formulae"
+echo "    brew install jenrzzz/formulae/focusrelay-api"

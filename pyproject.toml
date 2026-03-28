@@ -4,9 +4,13 @@ version = "0.1.0"
 description = "FastAPI wrapper for FocusRelayMCP OmniFocus server"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi[standard]>=0.115",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
     "pydantic-settings>=2.0",
 ]
+
+[project.scripts]
+focusrelay-api = "focusrelay_api.main:cli"
 
 [project.optional-dependencies]
 dev = [

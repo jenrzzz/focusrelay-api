@@ -247,3 +247,9 @@ async def list_tags(
 async def health():
     result = await run_focusrelay("bridge-health-check")
     return JSONResponse(content=result)
+
+
+def cli():
+    import uvicorn
+
+    uvicorn.run(app, host=settings.host, port=settings.port)

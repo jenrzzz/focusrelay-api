@@ -3,7 +3,14 @@
     "allow": [
       "Bash(chmod:*)",
       "Bash(uv sync:*)",
-      "Bash(bin/test -v 2>&1)"
+      "Bash(bin/test -v 2>&1)",
+      "Bash(brew tap-new:*)",
+      "Bash(uv tool:*)",
+      "Bash(poet fastapi:*)",
+      "Bash(uv pip:*)",
+      "Bash(bin/test -v)",
+      "Bash(gh auth:*)",
+      "Bash(brew list:*)"
     ]
   }
 }
