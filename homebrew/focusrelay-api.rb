@@ -1,19 +1,24 @@
 class FocusrelayApi < Formula
-  include Language::Python::Virtualenv
-
   desc "HTTP API server for OmniFocus via FocusRelayMCP"
   homepage "https://github.com/jenrzzz/focusrelay-api"
-  url "https://github.com/jenrzzz/focusrelay-api/archive/refs/tags/v0.2.1.tar.gz"
-  sha256 "6bf6ca5b839704d55c0a983b8769d77a9c7536f5f7f94a66ce09110bccef023d"
+  url "https://github.com/jenrzzz/focusrelay-api/archive/refs/tags/v0.2.2.tar.gz"
+  sha256 "1f37b9fb9608c970448c258dbdb603d1d462adcd78ace88e98b058f427d8377f"
   license "MIT"
 
   depends_on "deverman/focus-relay/focusrelay"
-  depends_on "python@3.13"
+  depends_on "uv"
 
   def install
-    virtualenv_create(libexec, "python3.13")
-    system libexec/"bin/pip", "install", *std_pip_args, "."
-    (bin/"focusrelay-api").write_env_script(libexec/"bin/focusrelay-api", PATH: "#{libexec}/bin:$PATH")
+    # Install source preserving src layout, then pip install into a venv
+    libexec.install Dir["src", "pyproject.toml"]
+    python = Formula["python@3.13"].opt_bin/"python3.13"
+    system "uv", "venv", "--python=#{python}", libexec/".venv"
+    system "uv", "pip", "install", "--python=#{libexec}/.venv/bin/python3.13", libexec.to_s
+
+    (bin/"focusrelay-api").write <<~BASH
+      #!/bin/bash
+      exec "#{libexec}/.venv/bin/focusrelay-api" "$@"
+    BASH
   end
 
   def caveats
@@ -49,7 +54,7 @@ class FocusrelayApi < Formula
       ENV["FOCUSRELAY_HOST"] = "127.0.0.1"
       exec bin/"focusrelay-api"
     end
-    sleep 3
+    sleep 5
     output = shell_output("curl -s http://127.0.0.1:#{port}/health 2>&1", 0)
     assert_match(/error|ok/, output)
   ensure

@@ -10,7 +10,10 @@
       "Bash(uv pip:*)",
       "Bash(bin/test -v)",
       "Bash(gh auth:*)",
-      "Bash(brew list:*)"
+      "Bash(brew list:*)",
+      "Bash(brew reinstall:*)",
+      "Bash(/opt/homebrew/Cellar/focusrelay-api/0.2.2/libexec/bin/pip install:*)",
+      "Bash(HOMEBREW_NO_SANDBOX=1 brew reinstall jenrzzz/formulae/focusrelay-api 2>&1)"
     ]
   }
 }
